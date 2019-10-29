@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import socket
 import numpy as np 
 import random
@@ -34,7 +32,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.send(bytes(str(len(pure)), encoding = 'utf-8'))
         #print(sys.getsizeof(s.sendall(bytes(pure))))
         for element in pure:
+<<<<<<< HEAD
             s.sendall(bytes(str(round(element, 4)), encoding= 'utf=8'))
             time.sleep(0.03)
+=======
+            s.send(bytes(str(round(element, 3)), encoding= 'utf=8'))
+>>>>>>> 458a1319ead5a9fd2da00038dce09a72b4625ff0
             #print(sys.getsizeof(s.send(bytes(str(round(element, 3)), encoding= 'utf=8'))))
         print('sent!!')
