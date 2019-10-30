@@ -4,6 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import sys
 import time
+import struct
 
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 11111        # The port used by the server
@@ -30,13 +31,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print('envia info da onda')
         print(sys.getsizeof(len(pure)))
         s.send(bytes(str(len(pure)), encoding = 'utf-8'))
-        #print(sys.getsizeof(s.sendall(bytes(pure))))
-        for element in pure:
-<<<<<<< HEAD
-            s.sendall(bytes(str(round(element, 4)), encoding= 'utf=8'))
-            time.sleep(0.03)
-=======
-            s.send(bytes(str(round(element, 3)), encoding= 'utf=8'))
->>>>>>> 458a1319ead5a9fd2da00038dce09a72b4625ff0
-            #print(sys.getsizeof(s.send(bytes(str(round(element, 3)), encoding= 'utf=8'))))
+        buf = struct.pack('%sf' % len(pure), *pure)
+        s.sendall(buf)
         print('sent!!')

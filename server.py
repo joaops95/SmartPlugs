@@ -4,20 +4,25 @@ import socket
 import re
 #from _thread import start_new_thread
 import threading
-from os import sys
+import os, errno, sys
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import wavePreparation
+import struct
 
 class Node:
     def __init__(self, id, addr):
         self.nodeId = id   
         self.nodeAdd = addr
+        self.wave = []
         self.welcome()
     def welcome(self):
         print(self.nodeId, self.nodeAdd)
+    def shoutWave(self):
+        print(self.wave)
         
-        
+
 class Server:
     def __init__(self ,HOST, PORT):
         self.HOST = HOST
@@ -59,23 +64,26 @@ class Server:
                     #conn.send(bytes('SE300-Match', encoding='utf-8'))
                     print('node ID: ' + str(self.nodeId) + '\n' + 'ip add: ' + str(addr))
                     time.sleep(5)
-                    self.nodes.append(Node(self.nodeId, addr))
+                    wavepath = './node{number}/train'.format(number = self.nodeId)
+                    try:
+                        os.makedirs(wavepath)
+                    except OSError as e:
+                        if e.errno != errno.EEXIST:
+                            raise
+                    this_node = Node(self.nodeId, addr)
+                    self.nodes.append(this_node)
                     self.nodeId = self.nodeId + 1
                     conn.send(bytes('ack', encoding = 'utf-8'))
                     if(conn.recv(1024).decode('utf-8') == 'ack'):
-                        wave = []
                         wavelen = int(conn.recv(28).decode('utf-8'))
-                        for i in range(0, wavelen):
-                            wave.append(float(conn.recv(28).decode('utf-8')))
-                            print(wave[i])
-                        print(wave)
+                        wave = list(struct.unpack('%sf' % wavelen, conn.recv(1024)))
                         fs = 50
                         maxtime = 0.08
                         t = np.linspace(0, maxtime, 2 * fs, endpoint=False)
+                        this_node.wave = wave
+                        wavePreparation.WavePrepare(wavepath, wave, t)
                         plt.plot(t, wave)
                         plt.show()
-                        #wave = conn.recv(1024).decode('utf-8')
-                        #print(wave)
                     break
             else:
                 break
