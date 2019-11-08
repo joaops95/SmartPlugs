@@ -1,4 +1,4 @@
-from tkinter import *
+import tkinter as tk
 from tkinter import ttk
 import time
 import threading
@@ -7,123 +7,84 @@ import queue
 import server
 from PIL import ImageTk, Image
 
-class GuiPart:
-    def __init__(self, master, queue, endCommand):
-        self.queue = queue
-        self.master = master
-        # Set up the GUI
-        tabControl = ttk.Notebook(master)
-        tab1 = ttk.Frame(tabControl)            # Create a tab 
-        tabControl.add(tab1, text='Tab 1')      # Add the tab
-        tabControl.pack(expand=1, fill="both")  # Pack to make visible
-        tab2 = ttk.Frame(tabControl)     
-        tabControl.add(tab2, text='Tab 1')      # Add the tab
-        tabControl.pack(expand=1, fill="both")  # Pack to make visible
-        photo = ImageTk.PhotoImage(Image.open('/home/joaos/Desktop/SE/project/assets/incycle.jpg'))
-        panel = Label(master=master, image = photo)
-        panel.image = photo
-        panel.pack()
-        welcomeText = Label(master=master, text = "Welcome to the SmartHome v1.0", height=5, width = 40)
-        welcomeText.pack()
-        b = Button(master, text="Turn on AP", command= self.mainScreen)
-        b.pack()
 
-    def mainScreen(self):
-        print('mainscreen opened')
-        newWindow = Toplevel(master=None)
-        Frame(master=newWindow, width=500, height=500).pack()
-        welcomeText = Label(master=newWindow, text = "Welcome to MainScreen", height=5, width = 40)
-        welcomeText.pack()
+class Page(tk.Frame):
+    def __init__(self, *args, **kwargs):
+        tk.Frame.__init__(self, *args, **kwargs)
+    
+    def show(self):
+        self.lift()
+ 
+    def startServer(self, ipadd, port):
+        print('server is running')
+        s1 = server.Server(ipadd, port)
+        conn = s1.connectServer()
+        s1.runServer(conn)
         
-    def say_hi(self):
-        print("turn on ap")
+class Page1(Page):
+   def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        ipadd = '127.0.0.1'
+        port = '11111'
+        label = tk.Label(self, text="Welcome to the SmartHome, click to start server")
+        label.pack(side="top", fill="both", expand=True)
+        ipaddEntry = tk.Entry(self, textvariable=ipadd)
+        ipaddEntry.insert(tk.END, ipadd)
+        ipaddEntry.pack()
+        portEntry = tk.Entry(self, textvariable=port)
+        portEntry.insert(tk.END, port)
+        portEntry.pack()
+        t1 = threading.Thread(target=self.startServer, args=)
+        b1 = tk.Button(self, text="Start the system", command=t1.start(str(ipadd), int(port)))
+        b1.pack()
+    
+
+
+class Page2(Page):
+   def __init__(self, *args, **kwargs):
+       Page.__init__(self, *args, **kwargs)
+       label = tk.Label(self, text="This is page 2")
+       label.pack(side="top", fill="both", expand=True)
+
+class Page3(Page):
+   def __init__(self, *args, **kwargs):
+       Page.__init__(self, *args, **kwargs)
+       label = tk.Label(self, text="This is page 3")
+       label.pack(side="top", fill="both", expand=True)
+       
+class GuiPart(tk.Frame):
+    def __init__(self, *args, **kwargs):
+        tk.Frame.__init__(self, *args, **kwargs)
+        p1 = Page1(self)
+        p2 = Page2(self)
+        p3 = Page3(self)
+
+        buttonframe = tk.Frame(self)
+        container = tk.Frame(self)
+        buttonframe.pack(side="top", fill="x", expand=False)
+        container.pack(side="top", fill="both", expand=True)
+
+        p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+
+        b1 = tk.Button(buttonframe, text="Start the system", command=p1.lift)
+        b2 = tk.Button(buttonframe, text="Page 2", command=p2.lift)
+        b3 = tk.Button(buttonframe, text="Page 3", command=p3.lift)
+
+        b1.pack(side="left")
+        b2.pack(side="left")
+        b3.pack(side="left")
+
+        p1.show()
         
-        
-    def processIncoming(self):
-        """Handle all messages currently in the queue, if any."""
-        while self.queue.qsize(  ):
-            try:
-                msg = self.queue.get(0)
-                # Check contents of message and do whatever is needed. As a
-                # simple test, print it (in real life, you would
-                # suitably update the GUI's display in a richer fashion).
-                print(msg)
-            except queue.Empty:
-                # just on general principles, although we don't
-                # expect this branch to be taken in this case
-                pass
-
-class ThreadedClient:
-    """
-    Launch the main part of the GUI and the worker thread. periodicCall and
-    endApplication could reside in the GUI part, but putting them here
-    means that you have all the thread controls in a single place.
-    """
-    def __init__(self, master):
-        """
-        Start the GUI and the asynchronous threads. We are in the main
-        (original) thread of the application, which will later be used by
-        the GUI as well. We spawn a new thread for the worker (I/O).
-        """
-        self.master = master
-
-        # Create the queue
-        self.queue = queue.Queue()
-
-        # Set up the GUI part
-        self.gui = GuiPart(master, self.queue, self.endApplication)
-
-        # Set up the thread to do asynchronous I/O
-        # More threads can also be created and used, if necessary
-        self.running = 1
-        self.thread1 = threading.Thread(target=self.workerThread1)
-        self.thread2 = threading.Thread(target=self.runServer)
-        self.thread1.start()
-        self.thread2.start()
-
-        # Start the periodic call in the GUI to check if the queue contains
-        # anything
-        self.periodicCall(  )
-
-    def periodicCall(self):
-        """
-        Check every 200 ms if there is something new in the queue.
-        """
-        self.gui.processIncoming(  )
-        if not self.running:
-            # This is the brutal stop of the system. You may want to do
-            # some cleanup before actually shutting it down.
-            import sys
-            sys.exit(1)
-        self.master.after(200, self.periodicCall)
-
-    def workerThread1(self):
-        """
-        This is where we handle the asynchronous I/O. For example, it may be
-        a 'select(  )'. One important thing to remember is that the thread has
-        to yield control pretty regularly, by select or otherwise.
-        """
-        while self.running:
-            # To simulate asynchronous I/O, we create a random number at
-            # random intervals. Replace the following two lines with the real
-            # thing.
-            time.sleep(rand.random(  ) * 1.5)
-            msg = rand.random(  )
-            self.queue.put(msg)
-            
-    def runServer(self):
-        port = 12312
-        s1 = server.Server('10.42.0.1', port)
-        s1.connectServer()
-
-    def endApplication(self):
-        self.running = 0
 
 
 
 if __name__ == "__main__":
     rand = random.Random(  )
-    root = Tk()
-
-    client = ThreadedClient(root)
+    root = tk.Tk()
+    root.wm_geometry("400x400")
+    gui = GuiPart(root)
+    gui.pack(side="top", fill="both", expand=True)
     root.mainloop()

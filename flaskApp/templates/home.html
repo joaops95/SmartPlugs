@@ -1,0 +1,7 @@
+{% extends "layout.html"%}
+{% block content %}
+    {%for node in nodes%}
+        <h1>SmartPlug number: {{node.nodeid}}</h1>
+        <p>IP address: {{ node.ipaddress }} Port Number: {{node.portnumber}}</p>
+    {%endfor%}
+{% endblock content %}

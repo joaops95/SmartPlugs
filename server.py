@@ -2,6 +2,7 @@
 
 import socket
 import re
+import json
 #from _thread import start_new_thread
 import threading
 import os, errno, sys
@@ -21,7 +22,7 @@ class Node:
         print(self.nodeId, self.nodeAdd)
     def shoutWave(self):
         print(self.wave)
-        
+
 
 class Server:
     def __init__(self ,HOST, PORT):
@@ -49,7 +50,17 @@ class Server:
         s.listen(10)
         print('listening...')
         return s     
-
+    def updateJsonFile(self, jsonfile, nodes):
+        with open(jsonfile, "w") as write_file:
+            data = []
+            for node in nodes:
+                data.append({ 
+                "nodeid": int(node.nodeId),
+                "ipaddress": str(tuple(node.nodeAdd)[0]),
+                "portnumber":int(tuple(node.nodeAdd)[1])
+                })
+            json.dump(data, write_file)
+            
     def handleNewClient(self, conn, addr):
         conn.send(b"{Welcome to the Server. Type messages and press enter to send.\n}")
         patern = 'SE300'
@@ -64,7 +75,7 @@ class Server:
                     #conn.send(bytes('SE300-Match', encoding='utf-8'))
                     print('node ID: ' + str(self.nodeId) + '\n' + 'ip add: ' + str(addr))
                     time.sleep(5)
-                    wavepath = './node{number}/train'.format(number = self.nodeId)
+                    wavepath = './nodes/node{number}/train'.format(number = self.nodeId)
                     try:
                         os.makedirs(wavepath)
                     except OSError as e:
@@ -73,6 +84,7 @@ class Server:
                     this_node = Node(self.nodeId, addr)
                     self.nodes.append(this_node)
                     self.nodeId = self.nodeId + 1
+                    self.updateJsonFile('nodes.json', self.nodes)
                     conn.send(bytes('ack', encoding = 'utf-8'))
                     if(conn.recv(1024).decode('utf-8') == 'ack'):
                         wavelen = int(conn.recv(28).decode('utf-8'))
@@ -81,9 +93,9 @@ class Server:
                         maxtime = 0.08
                         t = np.linspace(0, maxtime, 2 * fs, endpoint=False)
                         this_node.wave = wave
-                        wavePreparation.WavePrepare(wavepath, wave, t)
-                        plt.plot(t, wave)
-                        plt.show()
+                        #wavePreparation.WavePrepare(wavepath, wave, t)
+                        #plt.plot(t, wave)
+                        #plt.show()
                     break
             else:
                 break

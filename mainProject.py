@@ -138,7 +138,9 @@ def neuralNet(df, checkpoint_path):
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                 save_weights_only=True,
                                                 verbose=1,
-                                                period = 2)
+                                                period=2)
+    model.save_weights(checkpoint_path.format(epoch=0))
+    
     history = model.fit(
         train_dataset.repeat(), 
         epochs=10, 
@@ -224,30 +226,25 @@ if __name__ == "__main__":
     maxtime = 0.08
     numSamples = (maxtime/(1/f))
     t = np.linspace(0, maxtime, 2 * fs, endpoint=False)
-    checkpoint_path = "training_1/cp.ckpt"
+    checkpoint_path = "./training_1/cp-{epoch:04d}.ckpt"
     checkpoint_dir = os.path.dirname(checkpoint_path)
     #arr1, arr2, arr3 = generateWaves(df_train,df_test ,t, f, fs)
-    #arr1 = generateWaves(t, f, fs)
-    #df = pd.read_csv('./dataframe.csv')
-    #print(df.head())
-    #fftwave, freqrange = toFFT(arr3[2], fs, f)
-    #normalizeData('./imgs/img{number}.png'.format(number=1))
+    latest = tf.train.latest_checkpoint(checkpoint_dir)
     df_train = pd.read_pickle("./dataframe_train.pkl")
     df_test = pd.read_pickle("./dataframe_test.pkl")
     
-    neuralNet(df_train, checkpoint_path)
+    #neuralNet(df_train, checkpoint_path)
     
-    x_train = df_train['x_train']
-    y_train = df_train['y_train']
-    x, y = preprocess(x_train, y_train)
-
-    model = createModel(x, y) 
-    model.load_weights(checkpoint_path)
+    xtrain, ytrain = preprocess(df_train['x_train'], df_train['y_train'])
     xtest, ytest = preprocess(df_test['x_test'],  df_test['y_test'])
-    loss, acc = model.evaluate(x, y , verbose=2)
+
+    model = createModel(xtrain, ytrain) 
+    print(latest)
+    model.load_weights(latest)
+    loss, acc = model.evaluate(xtrain, ytrain , verbose=2)
     print("Restored model, accuracy: {:5.2f}%".format(100*acc))
-    # ynew = model.predict_classes(df_test['x_test'][1])
-    # print(ynew, df_test['y_test'][1])
+    ynew = model.predict_classes(np.transpose(df_test['x_test'][1]))
+    print(ynew, df_test['y_test'][1])
 
     # print(df_train.head())
     # print(df_test)
