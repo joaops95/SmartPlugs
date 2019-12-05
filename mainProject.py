@@ -226,7 +226,7 @@ if __name__ == "__main__":
     maxtime = 0.08
     numSamples = (maxtime/(1/f))
     t = np.linspace(0, maxtime, 2 * fs, endpoint=False)
-    checkpoint_path = "./training_1/cp-{epoch:04d}.ckpt"
+    checkpoint_path = "./training_2/cp-{epoch:04d}.ckpt"
     checkpoint_dir = os.path.dirname(checkpoint_path)
     #arr1, arr2, arr3 = generateWaves(df_train,df_test ,t, f, fs)
     latest = tf.train.latest_checkpoint(checkpoint_dir)
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     model.load_weights(latest)
     loss, acc = model.evaluate(xtrain, ytrain , verbose=2)
     print("Restored model, accuracy: {:5.2f}%".format(100*acc))
-    ynew = model.predict_classes(np.transpose(df_test['x_test'][1]))
+    ynew = model.predict_classes(df_test['x_test'][1])
     print(ynew, df_test['y_test'][1])
 
     # print(df_train.head())

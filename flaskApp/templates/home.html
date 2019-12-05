@@ -1,7 +1,15 @@
-{% extends "layout.html"%}
+{% extends "layout.html" %}
 {% block content %}
-    {%for node in nodes%}
-        <h1>SmartPlug number: {{node.nodeid}}</h1>
-        <p>IP address: {{ node.ipaddress }} Port Number: {{node.portnumber}}</p>
-    {%endfor%}
+{{ super() }}
+    {% for node in nodes %}
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              <a class="mr-2" href="#">Joao Santos House</a>
+            </div>
+            <h2><a class="article-title" href="#">SmartPlug number: {{node.nodeid}}</a></h2>
+            <p class="article-content">IP address: {{ node.ipaddress }} Port Number: {{node.portnumber}}</p>
+          </div>
+        </article>
+    {% endfor %}
 {% endblock content %}

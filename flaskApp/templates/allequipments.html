@@ -1,0 +1,24 @@
+{% extends "layout.html"%}
+{%block content%}
+{% for wave in wavesPath %}
+<div class="container">
+    <div class="row">
+    <div class = 'col'>  
+            <article class="media content-section">
+            <div class="media-body">
+                <div class="article-metadata">
+                <h3>Joao Santos House</h3>
+                </div>
+                <h2><a class="article-title" href="#">Last wave in first node</a></h2>
+                <img src = "{{ wave }}" class = "img">
+            <div style="text-align:center;">
+                <button type="button" class="btn btn-primary btn-lg" onclick = "run_nn()">Test Neural Network</button>
+            </div>
+
+            </div>
+        </article>
+    </div>
+    </div>
+</div>
+{% endfor %}
+{%endblock content%}

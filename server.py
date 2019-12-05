@@ -17,11 +17,34 @@ class Node:
         self.nodeId = id   
         self.nodeAdd = addr
         self.wave = []
+        self.efValue = 0
+        self.train = True
+        self.trainCat = 0
         self.welcome()
     def welcome(self):
         print(self.nodeId, self.nodeAdd)
     def shoutWave(self):
         print(self.wave)
+        
+    def saveWave(self, wave, path):
+
+        fig = plt.figure()
+        plt.xlabel('time[ms]')
+        plt.ylabel('Amplitude[A]')
+        plt.plot(wave)
+        plt.savefig(path + str('/lastwave.png'))
+        plt.close(fig)
+        
+    def appendWaveToJson(self, wave):
+        with open('nodes.json', 'r') as file:
+            json_data = json.load(file)
+            for item in json_data:
+                print(self.nodeAdd[1])
+                if item['portnumber'] == self.nodeAdd[1]:
+                    item['lastwave'] = list(wave)
+        with open('nodes.json', 'w') as file:
+            json.dump(json_data, file, indent=2)
+            
 
 
 class Server:
@@ -57,10 +80,28 @@ class Server:
                 data.append({ 
                 "nodeid": int(node.nodeId),
                 "ipaddress": str(tuple(node.nodeAdd)[0]),
-                "portnumber":int(tuple(node.nodeAdd)[1])
+                "portnumber":int(tuple(node.nodeAdd)[1]),
+                "lastwave":''
                 })
             json.dump(data, write_file)
-            
+
+    def convertStrToList(self, string):
+        for ch in [',', '[', ']']:
+            if ch in string:
+                string = string.replace(ch,'')
+            li = list(string.split(" "))
+        return [float(i) for i in li]
+    
+    def prepareWave(self, waveData, node, lastwavepath):
+        node.wave = self.convertStrToList(waveData['wave'])
+        node.efValue = float(waveData['efValue'])
+        node.appendWaveToJson(node.wave)
+        node.saveWave(node.wave, lastwavepath)
+        wavePrep = wavePreparation.WavePrepare(node.wave)
+        path = wavePrep.preparePath()
+        wavePrep.toSpectrogram(node.wave, path)
+        wavePrep.imgResizeGrayScale(path)
+        
     def handleNewClient(self, conn, addr):
         conn.send(b"{Welcome to the Server. Type messages and press enter to send.\n}")
         patern = 'SE300'
@@ -75,9 +116,13 @@ class Server:
                     #conn.send(bytes('SE300-Match', encoding='utf-8'))
                     print('node ID: ' + str(self.nodeId) + '\n' + 'ip add: ' + str(addr))
                     time.sleep(5)
-                    wavepath = './nodes/node{number}/train'.format(number = self.nodeId)
+                    wavepath = '/home/joaos/Desktop/EST/SE/SmartPlugs/flaskApp/static/nodes/node{number}/train'.format(number = self.nodeId)
+                    lastwave = '/home/joaos/Desktop/EST/SE/SmartPlugs/flaskApp/static/nodes/node{number}/lastwave'.format(number = self.nodeId)
                     try:
                         os.makedirs(wavepath)
+                        os.makedirs(lastwave)
+                        print('created')
+                        print(os.listdir(lastwave))
                     except OSError as e:
                         if e.errno != errno.EEXIST:
                             raise
@@ -87,30 +132,32 @@ class Server:
                     self.updateJsonFile('nodes.json', self.nodes)
                     conn.send(bytes('ack', encoding = 'utf-8'))
                     if(conn.recv(1024).decode('utf-8') == 'ack'):
-                        wavelen = int(conn.recv(28).decode('utf-8'))
-                        wave = list(struct.unpack('%sf' % wavelen, conn.recv(1024)))
-                        fs = 50
-                        maxtime = 0.08
-                        t = np.linspace(0, maxtime, 2 * fs, endpoint=False)
-                        this_node.wave = wave
-                        #wavePreparation.WavePrepare(wavepath, wave, t)
-                        #plt.plot(t, wave)
-                        #plt.show()
+                        while(True):
+                            wavelen = conn.recv(4).decode('utf-8')
+                            print(wavelen)
+                            data = bytearray()
+                            while len(data) < int(wavelen):
+                                packet = conn.recv(int(wavelen) - len(data))
+                                if not packet:
+                                    return None
+                                data.extend(packet)
+                            waveData = json.loads(data)
+                            if (this_node.train is True):
+                                #prepare training model
+                                self.prepareWave(waveData, this_node, lastwave)
+                                print('prepare training model')
+                            else:
+                                print('test it')
+
+                            plt.plot(this_node.wave)
+                            plt.show()
+
                     break
             else:
                 break
             #conn.close()
-                #yield Node(conn, self.nodes)
-            # else:
-            #     reply = bytes(str('ok ...' + data.decode('utf-8')), encoding = 'utf-8')
-            # conn.sendall(data)
-        #conn.close() 
-    def sendData(self, connection, data):
-        connection[0].sendall(str(data))
-        
-    def recieveData(self, connection):
-        return connection[0].recv(1024)
-    
+
+
     def runServer(self, connection):
         while True:
             # blocking call, waits to accept a connection
@@ -120,7 +167,8 @@ class Server:
             threading.Thread(target=self.handleNewClient(sock[0], sock[1]))
     
 
-s1 = Server('127.0.0.1', 11111)
+s1 = Server('10.42.0.1', 11111)
+open("nodes.json", "w").close()
 conn = s1.connectServer()
 s1.runServer(conn)
      
