@@ -75,6 +75,7 @@ class WavePrepare:
     
     def createDummyData(self, qqty, wave, label, train_path):
         arr = []
+        df_train = pd.read_pickle(train_path)
         for _ in range(0,qqty):
             noise = np.random.normal(0, random.uniform(0.1,0.5), np.array(wave).shape)
             wave_final = wave + noise
@@ -82,9 +83,8 @@ class WavePrepare:
             path = self.preparePath()
             self.toSpectrogram(wave, path)
             self.imgResizeGrayScale(path)
-            df_train = pd.read_pickle(train_path)
-            df2 = pd.DataFrame([label, np.array(cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2GRAY))/255])
-            df_train.append(df2)
+            df_train.loc[len(df_train)] = [label, np.array(cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2GRAY))/255]
+            print(df_train)
         df_train.to_pickle(train_path)
             
 with open('./nodes.json') as json_file:
@@ -94,9 +94,12 @@ with open('./nodes.json') as json_file:
         wave = p['lastwave']
     
     waveprep = WavePrepare(wave)
-    train_path, test_path = waveprep.createDataSets('.','y_train', 'x_train')
-    waveprep.addToDataSet('./imgs/train/img2.png',1,True,train_path,test_path)
-    waveprep.addToDataSet('./imgs/train/img1.png',1,True,train_path,test_path)
-    waveprep.createDummyData(20, wave, 2, train_path)
+    #train_path, test_path = waveprep.createDataSets('.','y_train', 'x_train')
+    train_path = './dataframe_test.pkl'
+    test_path = '/dataframe_test.pkl'
+    #waveprep.addToDataSet('./imgs/train/img2.png',1,True,train_path,test_path)
+    #waveprep.addToDataSet('./imgs/train/img1.png',1,True,train_path,test_path)
+    #waveprep.createDummyData(20, wave, 2, train_path)
     df_train = pd.read_pickle(train_path)
+    cv2.imshow(df_train['x_train'][15])
     print(df_train)
