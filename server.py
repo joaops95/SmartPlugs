@@ -19,6 +19,7 @@ class Node:
         self.wave = []
         self.efValue = 0
         self.train = True
+        self.label = 2
         self.trainCat = 0
         self.welcome()
     def welcome(self):
@@ -54,8 +55,8 @@ class Server:
         self.nodeId = 0
         self.clientAdd = ''
         self.nodes = []
-        
-
+        self.train_path = './dataframe_train.pkl'
+        self.test_path = './dataframe_test.pkl'
     def connectServer(self):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -98,9 +99,10 @@ class Server:
         node.appendWaveToJson(node.wave)
         node.saveWave(node.wave, lastwavepath)
         wavePrep = wavePreparation.WavePrepare(node.wave)
-        path = wavePrep.preparePath()
-        wavePrep.toSpectrogram(node.wave, path)
-        wavePrep.imgResizeGrayScale(path)
+        path = '.'#wavePrep.preparePath()
+        # wavePrep.toSpectrogram(node.wave, path)
+        # wavePrep.imgResizeGrayScale(path)
+        wavePrep.addToDataSet(path, node.label , node.wave, node.efValue ,node.train ,self.train_path, self.test_path)
         
     def handleNewClient(self, conn, addr):
         conn.send(b"{Welcome to the Server. Type messages and press enter to send.\n}")
@@ -133,6 +135,7 @@ class Server:
                     conn.send(bytes('ack', encoding = 'utf-8'))
                     if(conn.recv(1024).decode('utf-8') == 'ack'):
                         while(True):
+                            print('listening')
                             wavelen = conn.recv(4).decode('utf-8')
                             print(wavelen)
                             data = bytearray()
@@ -144,20 +147,15 @@ class Server:
                             waveData = json.loads(data)
                             if (this_node.train is True):
                                 #prepare training model
-                                self.prepareWave(waveData, this_node, lastwave)
+                                threading.Thread(target=self.prepareWave(waveData, this_node, lastwave)).start()
                                 print('prepare training model')
                             else:
                                 print('test it')
-
-                            plt.plot(this_node.wave)
-                            plt.show()
 
                     break
             else:
                 break
             #conn.close()
-
-
     def runServer(self, connection):
         while True:
             # blocking call, waits to accept a connection

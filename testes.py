@@ -11,6 +11,8 @@ from keras.models import load_model
 from tensorflow.keras import datasets, layers, models
 import datetime
 from keras.preprocessing import image
+import librosa
+import librosa.display
 
 
 """
@@ -45,7 +47,7 @@ def generateWaves(df_train, df_test ,t, f, fs): # this function generates 3 wave
         noise = np.random.normal(0, random.uniform(0.5,2.5), np.array(pure).shape)
         wave = pure + noise
         arr1.append(wave)
-        toSpectrogram(arr1[i],fs,path1)
+        toSpectrogram(arr1[i],path1)
         imgResizeGrayScale(path1)
         if(testEx):
             df_test.loc[imgindex1] = [0, np.array(cv2.cvtColor(cv2.imread(path1), cv2.COLOR_BGR2GRAY))/255]
@@ -66,7 +68,7 @@ def generateWaves(df_train, df_test ,t, f, fs): # this function generates 3 wave
         noise = np.random.normal(0, random.uniform(0.1,0.5), np.array(pure).shape)
         wave = pure + noise
         arr2.append(wave)
-        toSpectrogram(arr2[i],fs,path1)
+        toSpectrogram(arr2[i],path1)
         imgResizeGrayScale(path1)#print(np.asarray(arr1).shape)
         if(testEx):
             df_test.loc[imgindex1] = [1, np.array(cv2.cvtColor(cv2.imread(path1), cv2.COLOR_BGR2GRAY))/255]
@@ -88,7 +90,7 @@ def generateWaves(df_train, df_test ,t, f, fs): # this function generates 3 wave
         noise = np.random.normal(0, random.uniform(0.1,0.5), np.array(pure).shape)
         wave = pure + pure2 + noise
         arr3.append(wave)
-        toSpectrogram(arr3[i],fs,path1)
+        toSpectrogram(arr3[i],path1)
         imgResizeGrayScale(path1)
         if(testEx):
             df_test.loc[imgindex1] = [2, np.array(cv2.cvtColor(cv2.imread(path1), cv2.COLOR_BGR2GRAY))/255]
@@ -100,25 +102,34 @@ def generateWaves(df_train, df_test ,t, f, fs): # this function generates 3 wave
     df_test.to_pickle("./dataframe_test.pkl")
     return arr1, arr2, arr3
 
-def toFFT(wave, fs, f):
+def toFFT(wave, fs):
     X = fftpack.fft(wave)
     freqs = fftpack.fftfreq(len(wave)) * fs
 
     return X, freqs
 
-def toSpectrogram(wave,fs,path):
-    fig, ax = plt.subplots()
-    ax.specgram(wave, Fs=fs)
-    plt.axis('off')#print(np.asarray(arr1).shape)
+def toSpectrogram(wave,path):
+    n_fft = int(len(wave))
+    hop_length = int(len(wave)/len(wave))
+
+    D = np.abs(librosa.stft(np.asarray(wave), n_fft=n_fft,  
+                            hop_length=hop_length))
+    _, ax = plt.subplots()
+    DB = librosa.amplitude_to_db(D, ref=np.max)
+    librosa.display.specshow(D, sr=len(wave), hop_length=hop_length, 
+                            x_axis='time', y_axis='log')
+    cbar = plt.colorbar()
+    cbar.set_label('dB')
+    plt.axis('off')
     ax.set_position([0, 0, 1, 1])
     plt.savefig(path)
     plt.close()
     
 def imgResizeGrayScale(path):
     img = cv2.imread(path)
-    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    resized_image = cv2.resize(gray_image, (50, 250))
-    cv2.imwrite(path,resized_image)
+    #gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  
+    #resized_image = cv2.resize(gray_image, (50, 250))
+    cv2.imwrite(path,img)
     print('img {path} resized'.format(path = path))
 
 
@@ -221,8 +232,6 @@ def plotSetting(history, path):
     plt.savefig(path)
     plt.close()
 
-def pfrint():
-    print('ajajaj')
 if __name__ == "__main__":
     f = random.uniform(49.5,50.5)  # Frequency, in cycles per second, or Hertz
     df_train = pd.DataFrame(columns=['y_train', 'x_train'])
