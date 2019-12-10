@@ -48,8 +48,8 @@ class WavePrepare:
     def imgResizeGrayScale(self, path):
         img = cv2.imread(path)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  
-        #resized_image = cv2.resize(gray_image, (50, 250))
-        cv2.imwrite(path,gray_image)
+        resized_image = cv2.resize(gray_image, (200, 200))
+        cv2.imwrite(path,resized_image)
         print('img {path} resized'.format(path = path))
 
     def addToDataSet(self, path, label, wave, x_efvalue ,train, train_path, test_path):
@@ -86,27 +86,41 @@ class WavePrepare:
             df_train.loc[len(df_train)] = [label, np.array(cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2GRAY))/255, np.asarray(wave)]
             print(df_train)
         df_train.to_pickle(train_path)
+    
+    def transformDataSetToSpecs(self, train_path, newfilename):
+        y = 'y_train'
+        x = 'x_train'
+        df_train = pd.read_pickle(train_path)
+        new_df = pd.DataFrame(columns=[y, x])
+        for i in range(0, len(df_train)):
+            path = self.preparePath()
+            self.toSpectrogram(df_train['x_pure'][i], path)
+            self.imgResizeGrayScale(path)
+            new_df.loc[i] = [df_train['label'].loc[i], np.array(cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2GRAY))/255] 
+            print(len(new_df)) 
+        new_df.to_pickle('./'+str(newfilename)+'.pkl')
+            
+            
             
 # with open('./nodes.json') as json_file:
 #     data = json.load(json_file)
 #     for p in data:
 #         nodeid = p['nodeid']
 #         wave = p['lastwave']
-# wave = [1, 2]
-# waveprep = WavePrepare(wave)
+wave = [1, 2]
+waveprep = WavePrepare(wave)
 # train_path, test_path = waveprep.createDataSets('.','label', 'x_pure', 'x_efvalue')
-    train_path = './dataframe_train.pkl'
+train_path = './dataframe_train.pkl'
 # #     test_path = '/dataframe_test.pkl'
 # #     #waveprep.addToDataSet('./imgs/train/img21.png',1,wave, 0.5,True,train_path,test_path)
 # #     #waveprep.createDummyData(20, wave, 2, train_path)
-    df_train = pd.read_pickle(train_path)
-    for i in range(0, len(df_train)):
-        if(df_train['label'][i] == 2):
-            plt.plot(df_train['x_pure'][i])
-            plt.show()
-
-        
-    print(df_train)
-    # plt.plot(df_train['x_pure'][0])
-    # plt.show()
-    # print(df_train)
+df_train = pd.read_pickle(train_path)
+# for i in range(0, len(df_train)):
+#     if(df_train['label'][i] == 2):
+#         plt.plot(df_train['x_pure'][i])
+#         plt.show()
+#waveprep.transformDataSetToSpecs(train_path, 'new_df')
+print(len(df_train['x_pure'][5]))
+print(df_train.head())
+# plt.plot(df_train['x_pure'][0])
+# plt.show()

@@ -147,7 +147,7 @@ def reshapeArr1(df):
 
 def createModel():
     model = models.Sequential()
-    model.add(layers.Conv2D(128, (3, 3), activation='relu', batch_input_shape=(1200, 250, 50, 1)))
+    model.add(layers.Conv2D(128, (3, 3), activation='relu', batch_input_shape=(470, 200, 200, 1)))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
@@ -198,11 +198,11 @@ def preProcessData(df_train, df_test):
     y_train = reshapeArr1(df_train)
     y_train = tf.reshape(y_train, (-1,1))
     x_train = reshapeArr(df_train)
-    x_train = tf.reshape(x_train,(-1, 250, 50, 1))
+    x_train = tf.reshape(x_train,(-1, 200, 200, 1))
     y_test = reshapeArr1(df_test)
     y_test = tf.reshape(y_test, (-1,1))
     x_test = reshapeArr(df_test)
-    x_test = tf.reshape(x_test,(-1, 250, 50, 1))
+    x_test = tf.reshape(x_test,(-1, 200, 200, 1))
     return y_train, x_train, y_test, x_test
 
 def plotSetting(history, path):
@@ -242,14 +242,14 @@ if __name__ == "__main__":
     numSamples = (maxtime/(1/f))
     t = np.linspace(0, maxtime, 2 * fs, endpoint=False)
 
-    arr1, arr2, arr3 = generateWaves(df_train,df_test ,t, f, f)
+    #arr1, arr2, arr3 = generateWaves(df_train,df_test ,t, f, f)
     
     
     #guarda valores df no em pkl
-    df_train = pd.read_pickle("./dataframe_train.pkl")
-    df_test = pd.read_pickle("./dataframe_test.pkl")
+    df_train = pd.read_pickle("./new_df.pkl")
+    df_test = pd.read_pickle("./new_df.pkl")
 
     y_train, x_train, y_test, x_test = preProcessData(df_train, df_test)
-    #hist = trainModel(x_train, y_train)
+    hist = trainModel(x_train, y_train)
     testModel(x_test, 53)
     #plotSetting(hist, '/home/joaos/Desktop/EST/SE/SmartPlugs/flaskApp/static/imgs/trainedModels/saved.png')
