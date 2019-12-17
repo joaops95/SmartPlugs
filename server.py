@@ -12,6 +12,17 @@ import numpy as np
 import wavePreparation
 import struct
 
+
+'''
+LABELS:
+0 - COMPUTER
+1 - LAMP
+2 - COMPUTER + LAMP
+3 - SCREEN
+4 - COMPUTER + SCREEN
+5 - LAMP + SCREEN
+'''
+
 class Node:
     def __init__(self, id, addr):
         self.nodeId = id   
@@ -20,7 +31,6 @@ class Node:
         self.efValue = 0
         self.train = True
         self.label = 2
-        self.trainCat = 0
         self.welcome()
     def welcome(self):
         print(self.nodeId, self.nodeAdd)
@@ -46,7 +56,6 @@ class Node:
         with open('nodes.json', 'w') as file:
             json.dump(json_data, file, indent=2)
             
-
 
 class Server:
     def __init__(self ,HOST, PORT):
@@ -92,17 +101,30 @@ class Server:
                 string = string.replace(ch,'')
             li = list(string.split(" "))
         return [float(i) for i in li]
-    
-    def prepareWave(self, waveData, node, lastwavepath):
-        node.wave = self.convertStrToList(waveData['wave'])
+    def converToAmps(self, waveData, node):
+        testWave = self.convertStrToList(waveData['wave'])
         node.efValue = float(waveData['efValue'])
+        node.efValue = ((node.efValue)/1023.0)*5000
+        node.efValue = (((node.efValue) - 2500) / 100)*0.707
+        newWave = []
+        for value in testWave:   
+            value = ((value)/1024.0)*5000
+            value = ((value) - 2585)/100
+            newWave.append(value)
+        node.wave = newWave
+
+
+    def prepareWave(self, waveData, node, lastwavepath):
+        self.converToAmps(waveData, node)
         node.appendWaveToJson(node.wave)
         node.saveWave(node.wave, lastwavepath)
         wavePrep = wavePreparation.WavePrepare(node.wave)
-        path = '.'#wavePrep.preparePath()
+        plt.plot(node.wave)
+        plt.show()
+        #wavePrep.preparePath()
         # wavePrep.toSpectrogram(node.wave, path)
         # wavePrep.imgResizeGrayScale(path)
-        wavePrep.addToDataSet(path, node.label , node.wave, node.efValue ,node.train ,self.train_path, self.test_path)
+        #wavePrep.addToDataSet('.', node.label , node.wave, node.efValue ,node.train ,self.train_path, self.test_path)
         
     def handleNewClient(self, conn, addr):
         conn.send(b"{Welcome to the Server. Type messages and press enter to send.\n}")
@@ -137,7 +159,6 @@ class Server:
                         while(True):
                             print('listening')
                             wavelen = conn.recv(4).decode('utf-8')
-                            print(wavelen)
                             data = bytearray()
                             while len(data) < int(wavelen):
                                 packet = conn.recv(int(wavelen) - len(data))

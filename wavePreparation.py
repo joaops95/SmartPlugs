@@ -32,14 +32,20 @@ class WavePrepare:
             
 
     def toSpectrogram(self, wave,path):
-        n_fft = len(wave)
+        n_fft = 350
+        n_mels = 256
         hop_length = int(len(wave)/len(wave))
-        D = np.abs(librosa.stft(np.asarray(wave), n_fft=n_fft,  
-                                hop_length=hop_length))
+        # D = np.abs(librosa.stft(np.asarray(wave), n_fft=n_fft,  
+        #                         hop_length=hop_length))
         _, ax = plt.subplots()
-        DB = librosa.amplitude_to_db(D, ref=np.max)
-        librosa.display.specshow(DB, sr=len(wave), hop_length=hop_length, 
+        S = librosa.feature.melspectrogram(wave, sr=350, n_fft=n_fft, 
+                                   hop_length=hop_length, 
+                                   n_mels=n_mels)
+        #DB = librosa.amplitude_to_db(D, ref=np.max)
+        #S_DB = librosa.power_to_db(S, ref=np.mean)
+        librosa.display.specshow(S, sr=350, hop_length=hop_length, 
                                 x_axis='time', y_axis='log')
+        #plt.colorbar(format='%+2.0f dB');
         plt.axis('off')
         ax.set_position([0, 0, 1, 1])
         plt.savefig(path)
@@ -48,11 +54,15 @@ class WavePrepare:
     def imgResizeGrayScale(self, path):
         img = cv2.imread(path)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  
-        resized_image = cv2.resize(gray_image, (200, 200))
+        resized_image = cv2.resize(gray_image, (80, 80))
         cv2.imwrite(path,resized_image)
         print('img {path} resized'.format(path = path))
 
     def addToDataSet(self, path, label, wave, x_efvalue ,train, train_path, test_path):
+        try:
+            fh = open(train_path,'r')
+        except:
+            self.createDataSets('.','label', 'x_pure', 'x_efvalue')
         if(train):
             df_train = pd.read_pickle(train_path)
             df_train.loc[len(df_train)] = [label, np.asarray(wave), x_efvalue]
@@ -97,7 +107,8 @@ class WavePrepare:
             self.toSpectrogram(df_train['x_pure'][i], path)
             self.imgResizeGrayScale(path)
             new_df.loc[i] = [df_train['label'].loc[i], np.array(cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2GRAY))/255] 
-            print(len(new_df)) 
+            print(len(new_df))
+        new_df = shuffle(new_df) 
         new_df.to_pickle('./'+str(newfilename)+'.pkl')
             
             
@@ -106,21 +117,27 @@ class WavePrepare:
 #     data = json.load(json_file)
 #     for p in data:
 #         nodeid = p['nodeid']
-#         wave = p['lastwave']
+# #         wave = p['lastwave']
 wave = [1, 2]
 waveprep = WavePrepare(wave)
-# train_path, test_path = waveprep.createDataSets('.','label', 'x_pure', 'x_efvalue')
+# # train_path, test_path = waveprep.createDataSets('.','label', 'x_pure', 'x_efvalue')
 train_path = './dataframe_train.pkl'
-# #     test_path = '/dataframe_test.pkl'
-# #     #waveprep.addToDataSet('./imgs/train/img21.png',1,wave, 0.5,True,train_path,test_path)
-# #     #waveprep.createDummyData(20, wave, 2, train_path)
+# # # # # #     test_path = '/dataframe_test.pkl'
+# # # # # #     #waveprep.addToDataSet('./imgs/train/img21.png',1,wave, 0.5,True,train_path,test_path)
+# # # # # #     #waveprep.createDummyData(20, wave, 2, train_path)
 df_train = pd.read_pickle(train_path)
-# for i in range(0, len(df_train)):
-#     if(df_train['label'][i] == 2):
-#         plt.plot(df_train['x_pure'][i])
-#         plt.show()
+# # for i in range(0, len(df_train)):
+# #     if(df_train['label'][i] == 0):
+# #         plt.plot(df_train['x_pure'][i])
+# #         plt.show()
 #waveprep.transformDataSetToSpecs(train_path, 'new_df')
-print(len(df_train['x_pure'][5]))
-print(df_train.head())
-# plt.plot(df_train['x_pure'][0])
-# plt.show()
+# # print(len(df_train['x_pure'][5]))
+#print(df_train.describe())
+time = np.arange(0, 60, 60/len(df_train['x_pure'][1055]))
+print(df_train.loc[1055])
+# plt.xlabel('time[ms]')
+# plt.ylabel('Amplitude[A]')
+plt.plot(time, df_train['x_pure'][1055])
+plt.show()
+# # # plt.plot(df_train['x_pure'][0])pyth
+# # plt.show()

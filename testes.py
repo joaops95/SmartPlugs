@@ -147,12 +147,14 @@ def reshapeArr1(df):
 
 def createModel():
     model = models.Sequential()
-    model.add(layers.Conv2D(128, (3, 3), activation='relu', batch_input_shape=(470, 200, 200, 1)))
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', batch_input_shape=(971, 80, 80, 1)))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(32, (3, 3), activation='relu'))
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.Flatten())
+    model.add(layers.Dense(128, activation='relu'))
     model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(3, activation='softmax'))
 
@@ -163,7 +165,7 @@ def createModel():
     return model
 
 def testModel(x_test, pos):
-    checkpoint_path = "training_2/cp-{epoch:04d}.ckpt"
+    checkpoint_path = "training_weights/cp-{epoch:04d}.ckpt"
     checkpoint_dir = os.path.dirname(checkpoint_path)
     
     latest = tf.train.latest_checkpoint(checkpoint_dir)
@@ -178,17 +180,17 @@ def testModel(x_test, pos):
     print(y_test[pos])
     
 def trainModel(x_train, y_train):
-    checkpoint_path = "training_2/cp-{epoch:04d}.ckpt"
+    checkpoint_path = "training_weights/cp-{epoch:04d}.ckpt"
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                     save_weights_only=True,
                                                     verbose=1,
-                                                    period = 2)
+                                                    period = 10)
 
     #Save the weights using the `checkpoint_path` format
     model = createModel()
     model.save_weights(checkpoint_path.format(epoch=0))
 
-    history = model.fit(x_train, y_train, epochs=10, 
+    history = model.fit(x_train, y_train, epochs=150, 
                     validation_data=(x_test,y_test),
                     callbacks=[cp_callback])
     
@@ -198,11 +200,11 @@ def preProcessData(df_train, df_test):
     y_train = reshapeArr1(df_train)
     y_train = tf.reshape(y_train, (-1,1))
     x_train = reshapeArr(df_train)
-    x_train = tf.reshape(x_train,(-1, 200, 200, 1))
+    x_train = tf.reshape(x_train,(-1, 80, 80, 1))
     y_test = reshapeArr1(df_test)
     y_test = tf.reshape(y_test, (-1,1))
     x_test = reshapeArr(df_test)
-    x_test = tf.reshape(x_test,(-1, 200, 200, 1))
+    x_test = tf.reshape(x_test,(-1, 80, 80, 1))
     return y_train, x_train, y_test, x_test
 
 def plotSetting(history, path):
@@ -252,4 +254,4 @@ if __name__ == "__main__":
     y_train, x_train, y_test, x_test = preProcessData(df_train, df_test)
     hist = trainModel(x_train, y_train)
     testModel(x_test, 53)
-    #plotSetting(hist, '/home/joaos/Desktop/EST/SE/SmartPlugs/flaskApp/static/imgs/trainedModels/saved.png')
+    plotSetting(hist, '/home/joaos/Desktop/EST/SE/SmartPlugs/flaskApp/static/imgs/trainedModels/saved.png')

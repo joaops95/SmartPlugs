@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.10.27)  6 DEC 2019 11:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.10.27)  17 DEC 2019 14:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -328,6 +328,15 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
 
 LaTeX Warning: Label `fig' multiply defined.
 
+
+LaTeX Warning: Label `fig' multiply defined.
+
+
+LaTeX Warning: Label `fig' multiply defined.
+
+
+LaTeX Warning: Label `fig' multiply defined.
+
 )
 \openout1 = `conference_101719.aux'.
 
@@ -454,29 +463,48 @@ File: specgramsinwave.png Graphic file (type png)
 <use specgramsinwave.png>
 Package pdftex.def Info: specgramsinwave.png  used on input line 51.
 (pdftex.def)             Requested size: 128.47772pt x 96.35829pt.
+<cnndemo.png, id=2, 1371.1225pt x 456.70625pt>
+File: cnndemo.png Graphic file (type png)
+<use cnndemo.png>
+Package pdftex.def Info: cnndemo.png  used on input line 61.
+(pdftex.def)             Requested size: 260.51598pt x 86.77509pt.
+<lastwave.png, id=4, 462.528pt x 346.896pt>
+File: lastwave.png Graphic file (type png)
+<use lastwave.png>
+Package pdftex.def Info: lastwave.png  used on input line 73.
+(pdftex.def)             Requested size: 185.0079pt x 138.75594pt.
+<Datasetresume.png, id=5, 576.1525pt x 97.36375pt>
+File: Datasetresume.png Graphic file (type png)
+<use Datasetresume.png>
+Package pdftex.def Info: Datasetresume.png  used on input line 80.
+(pdftex.def)             Requested size: 230.45691pt x 38.9448pt.
  [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
- <./specgramsinwave.png (PNG copy)>]
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 98.
+ <./specgramsinwave.png (PNG copy)> <./cnndemo.png>]
+<lastwavespecgram.png, id=16, 642.4pt x 481.8pt>
+File: lastwavespecgram.png Graphic file (type png)
+<use lastwavespecgram.png>
+Package pdftex.def Info: lastwavespecgram.png  used on input line 90.
+(pdftex.def)             Requested size: 289.07733pt x 216.80798pt.
+ [2 <./lastwave.png> <./Datasetresume.png> <./lastwavespecgram.png (PNG copy)>]
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 171.
 
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1pcr.fd
-File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-)
-<fig1.png, id=14, 82.1469pt x 71.5473pt>
-File: fig1.png Graphic file (type png)
-<use fig1.png>
-Package pdftex.def Info: fig1.png  used on input line 203.
-(pdftex.def)             Requested size: 82.14668pt x 71.5471pt.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 214.
-
-
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/omsptm.fd
+ (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 214.
- [2]
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 171.
+
+Underfull \hbox (badness 10000) in paragraph at lines 216--218
+[]\OT1/ptm/m/n/10 https://towardsdatascience.com/getting-to-know-the-mel-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 216--218
+\OT1/ptm/m/n/10 comprehensive-guide-to-convolutional-neural-networks-the-
+ []
+
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -488,34 +516,32 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[3 <./fig1.png (PNG copy)>] (./conference_101719.aux)
+[3] (./conference_101719.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 4438 strings out of 492982
- 64287 string characters out of 6134895
- 133943 words of memory out of 5000000
- 7925 multiletter control sequences out of 15000+600000
- 51125 words of font info for 106 fonts, out of 8000000 for 9000
+ 4415 strings out of 492982
+ 64088 string characters out of 6134895
+ 131933 words of memory out of 5000000
+ 7906 multiletter control sequences out of 15000+600000
+ 48396 words of font info for 102 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,11n,35p,613b,302s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8
-a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/sha
-re/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/tex
-mf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/t
-ype1/urw/times/utmri8a.pfb>
-Output written on conference_101719.pdf (3 pages, 168300 bytes).
+f-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/
+utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></u
+sr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texliv
+e/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on conference_101719.pdf (3 pages, 615168 bytes).
 PDF statistics:
- 61 PDF objects out of 1000 (max. 8388607)
- 42 compressed objects within 1 object stream
+ 60 PDF objects out of 1000 (max. 8388607)
+ 37 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
