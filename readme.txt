@@ -1,3 +1,16 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+0 - COMPUTER
+1 - LAMP
+2 - COMPUTER + LAMP
+3 - SCREEN
+4 - COMPUTER + SCREEN
+5 - LAMP + SCREEN ----
+6 - All Togeth
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%  FOLDERS %%%%%%%%%%%%%%%
 
 flaskApp - folder que tem guardado a applicacao em flaskApp
