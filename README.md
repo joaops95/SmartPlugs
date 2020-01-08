@@ -4,7 +4,12 @@ Making a system for smart houses that analyse what type of equipment is connecte
 ########
 HOW TO USE
 ########
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 Output
 0 - COMPUTER
 1 - LAMP
