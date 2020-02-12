@@ -10,9 +10,9 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import wavePreparation
-import struct
-
-
+import neuralNet
+import pandas as pd
+import tensorflow as tf
 '''
 LABELS:
 0 - COMPUTER
@@ -21,6 +21,7 @@ LABELS:
 3 - SCREEN
 4 - COMPUTER + SCREEN
 5 - LAMP + SCREEN
+6 - All Together
 '''
 
 class Node:
@@ -29,13 +30,18 @@ class Node:
         self.nodeAdd = addr
         self.wave = []
         self.efValue = 0
-        self.train = True
-        self.label = 2
+        self.train = False
+        self.label = 5
         self.welcome()
+        
+        
     def welcome(self):
         print(self.nodeId, self.nodeAdd)
+        
+        
     def shoutWave(self):
         print(self.wave)
+        
         
     def saveWave(self, wave, path):
 
@@ -45,6 +51,7 @@ class Node:
         plt.plot(wave)
         plt.savefig(path + str('/lastwave.png'))
         plt.close(fig)
+        
         
     def appendWaveToJson(self, wave):
         with open('nodes.json', 'r') as file:
@@ -66,6 +73,8 @@ class Server:
         self.nodes = []
         self.train_path = './dataframe_train.pkl'
         self.test_path = './dataframe_test.pkl'
+        
+        
     def connectServer(self):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -83,6 +92,8 @@ class Server:
         s.listen(10)
         print('listening...')
         return s     
+    
+    
     def updateJsonFile(self, jsonfile, nodes):
         with open(jsonfile, "w") as write_file:
             data = []
@@ -101,11 +112,16 @@ class Server:
                 string = string.replace(ch,'')
             li = list(string.split(" "))
         return [float(i) for i in li]
+    
+    '''
+Funcao de calculo de corrente em que adequirimos o valor lido pelo ADC
+Its divided by the number of 2^n that n is the number of bits multiplied by 5000
+'''
     def converToAmps(self, waveData, node):
         testWave = self.convertStrToList(waveData['wave'])
-        node.efValue = float(waveData['efValue'])
+        node.efValue = float(max(testWave))
         node.efValue = ((node.efValue)/1023.0)*5000
-        node.efValue = (((node.efValue) - 2500) / 100)*0.707
+        node.efValue = (((node.efValue) - 2585) / 100)*0.707
         newWave = []
         for value in testWave:   
             value = ((value)/1024.0)*5000
@@ -113,19 +129,26 @@ class Server:
             newWave.append(value)
         node.wave = newWave
 
-
     def prepareWave(self, waveData, node, lastwavepath):
+
         self.converToAmps(waveData, node)
         node.appendWaveToJson(node.wave)
         node.saveWave(node.wave, lastwavepath)
+        print(node.efValue)
         wavePrep = wavePreparation.WavePrepare(node.wave)
-        plt.plot(node.wave)
-        plt.show()
-        #wavePrep.preparePath()
-        # wavePrep.toSpectrogram(node.wave, path)
-        # wavePrep.imgResizeGrayScale(path)
-        #wavePrep.addToDataSet('.', node.label , node.wave, node.efValue ,node.train ,self.train_path, self.test_path)
-        
+        # plt.plot(node.wave)
+        # plt.show()
+        path = wavePrep.preparePath(node.train)
+        wavePrep.toSpectrogram(np.asarray(node.wave), path)
+        wavePrep.imgResizeGrayScale(path)
+        wavePrep.addToDataSet('.', node.label , node.wave, node.efValue ,node.train ,self.train_path, self.test_path)
+        if(not node.train):
+            df_test = pd.read_pickle(self.test_path)
+            x_test = neuralNet.reshapeArr(df_test)
+            x_test = tf.reshape(x_test,(-1, 100, 100, 1))
+            result = neuralNet.testModel(x_test, len(df_test)-1)
+            print(result, neuralNet.switchOutput(result))
+
     def handleNewClient(self, conn, addr):
         conn.send(b"{Welcome to the Server. Type messages and press enter to send.\n}")
         patern = 'SE300'
@@ -137,7 +160,6 @@ class Server:
                 if(re.search(patern, new_data)):
                     data = ''
                     print('we find a node')
-                    #conn.send(bytes('SE300-Match', encoding='utf-8'))
                     print('node ID: ' + str(self.nodeId) + '\n' + 'ip add: ' + str(addr))
                     time.sleep(5)
                     wavepath = '/home/joaos/Desktop/EST/SE/SmartPlugs/flaskApp/static/nodes/node{number}/train'.format(number = self.nodeId)
@@ -171,6 +193,7 @@ class Server:
                                 threading.Thread(target=self.prepareWave(waveData, this_node, lastwave)).start()
                                 print('prepare training model')
                             else:
+                                threading.Thread(target=self.prepareWave(waveData, this_node, lastwave)).start()
                                 print('test it')
 
                     break
@@ -178,16 +201,15 @@ class Server:
                 break
             #conn.close()
     def runServer(self, connection):
-        while True:
             # blocking call, waits to accept a connection
             sock = connection.accept()
             print("[-] Connected to " + sock[1][0] + ":" + str(sock[1][1]))
-
-            threading.Thread(target=self.handleNewClient(sock[0], sock[1]))
+            target=self.handleNewClient(sock[0], sock[1])
     
 
 s1 = Server('10.42.0.1', 11111)
 open("nodes.json", "w").close()
 conn = s1.connectServer()
-s1.runServer(conn)
+while True:
+    threading.Thread(s1.runServer(conn))
      
